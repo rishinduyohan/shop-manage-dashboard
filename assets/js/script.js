@@ -144,3 +144,60 @@ async function updateProduct(id) {
         console.error(error);
     }
 }
+
+productForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const productId = document.getElementById('productId').value;
+    const productData = {
+        title: document.getElementById('title').value,
+        price: parseFloat(document.getElementById('price').value),
+        category: document.getElementById('category').value,
+        thumbnail: document.getElementById('imageUrl').value || 'https://via.placeholder.com/150'
+    };
+
+    if (productId) {
+        updateProduct(productId, productData);
+    } else {
+        createProduct(productData);
+    }
+});
+
+async function createProduct(data) {
+    try {
+        const response = await fetch(API_URL+`/add`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card card';
+        productCard.setAttribute('data-product-id', result.id);
+        productCard.innerHTML = `
+            <img src="${result.thumbnail}" class="card-img-top" alt="${result.title}">
+            <div class="card-body">
+                <h5 class="card-title">${result.title}</h5>
+                <p class="card-text">${result.description || ''}</p>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">${result.category}</li>
+                <li class="list-group-item">$${result.price}</li>
+            </ul>
+            <div class="card-footer bg-white border-top-0 d-flex gap-2">
+                <button class="btn btn-outline-primary flex-grow-1" onclick="editProduct(${result.id})">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                </button>
+                <button class="btn btn-outline-danger" onclick="deleteProduct(${result.id}, this)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        `;
+        productGrid.appendChild(productCard);
+        alert('Product Added successfully!');
+        
+    } catch (error) {
+        console.error(error);
+    }
+}
